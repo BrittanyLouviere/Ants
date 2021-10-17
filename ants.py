@@ -9,7 +9,7 @@ maxGridSize = 500
 # Used to assign id numbers to new ants
 antCount = 0
 # window setup
-win = GraphWin("Ant Simulation", maxGridSize, maxGridSize)
+win = GraphWin("Ant Simulation", maxGridSize, maxGridSize, autoflush=False)
 win.setBackground("light gray")
 
 class Ant:
@@ -80,6 +80,7 @@ def main():
   newAnts(10)
   while(win.checkKey() != 'x'):
     moveAllAnts()
+    update(30)
   win.close()
 
 main()
