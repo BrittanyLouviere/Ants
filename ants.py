@@ -1,58 +1,49 @@
 #!/usr/bin/env python3
 
+from graphics import *
 import random
 import os
 
-maxGridSize = 10
-
-class Location:
-  x = 0
-  y = 0
-
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
-
-  def __str__(self):
-    return "({}, {})".format(self.x, self.y)
-
-  @classmethod
-  def random(self):
-    return Location(random.randint(0,maxGridSize-1), random.randint(0,maxGridSize-1))
+maxGridSize = 500
 
 # Used to assign id numbers to new ants
 antCount = 0
+# window setup
+win = GraphWin("Ant Simulation", maxGridSize, maxGridSize)
+win.setBackground("light gray")
 
 class Ant:
   id = 0
-  location = Location(0,0)
+  circle = None
 
-  def __init__(self, location):
-    self.location = location
+  def __init__(self, x, y):
+    self.circle = Circle(Point(x,y), 3).draw(win)
+    self.circle.setFill("red")
     global antCount
     self.id = antCount
     antCount += 1
   
   def __str__(self) -> str:
-    return "Ant #{}: {}".format(self.id, self.location)
+    return "Ant #{}: {}".format(self.id, self.circle.getCenter())
 
   @classmethod
   def random(self):
-    return Ant(Location.random())
+    return Ant(random.randint(0,maxGridSize-1), random.randint(0,maxGridSize-1))
 
   def move(self):
     dir = random.randint(1,5)
-    if (dir == 1 and self.location.x < maxGridSize-1):
-      self.location.x += 1
+    center = self.circle.getCenter()
+    if (dir == 1 and center.getX() < maxGridSize-1):
+      self.circle.move(1, 0)
       return "right"
-    elif (dir == 2 and self.location.x > 0):
-      self.location.x -= 1
+    elif (dir == 2 and center.getX() > 0):
+      self.circle.move(-1, 0)
       return "left"
-    elif (dir == 3 and self.location.y < maxGridSize-1):
-      self.location.y += 1
+    elif (dir == 3 and center.getY() < maxGridSize-1):
+      self.circle.move(0, 1)
       return "down"
-    elif (dir == 4 and self.location.y > 0):
-      self.location.y -= 1
+    elif (dir == 4 and center.getY() > 0):
+      self.circle.move(0, -1)
       return "up"
     else:
       return "stayed"
@@ -85,38 +76,10 @@ def moveAllAnts():
   for ant in antsArray:
     ant.move()
 
-def printWorld():
-  #sorted = antsArray.sort(key=sortX)
-  for y in range(0, maxGridSize):
-    row = ""
-    for x in range(0, maxGridSize):
-      found = " . "
-      for ant in antsArray:
-        if (ant.location.x == x and ant.location.y == y):
-          found = " {} ".format(ant.id)
-          break
-      row += found
-    print(row)
-
-
-
-# Main code
-userInput = ""
-os.system('clear')
-newAnts(5)
-printWorld()
-print()
-printAllAnts()
-userInput = input("Input: ")
-
-while (userInput != "x" and userInput != "X"):
-  if (userInput == "c" or userInput == "C"):
-    printAntCount()
-    userInput = input("Input: ")
-  else:
+def main():
+  newAnts(10)
+  while(win.checkKey() != 'x'):
     moveAllAnts()
-    os.system('clear')
-    printWorld()
-    print()
-    printAllAnts()
-    userInput = input("Input: ")
+  win.close()
+
+main()
