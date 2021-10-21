@@ -2,6 +2,7 @@
 
 from graphics import *
 import random
+import math
 import os
 
 maxGridSize = 500
@@ -83,4 +84,64 @@ def main():
     update(30)
   win.close()
 
-main()
+#main()
+
+def rotate (point: Point, center: Point, angle: float) -> Point:
+  s = math.sin(angle)
+  c = math.cos(angle)
+  px = point.x - center.x
+  py = point.y - center.y
+  nx = px * c - py * s
+  ny = px * s + py * c
+  return Point(nx + center.x, ny + center.y)
+
+def getPolygon (center: Point, angle: float) -> Polygon:
+  size = 6
+  hs = 6/2
+  x = center.x
+  y = center.y
+
+  head = Point(x + size, y)
+  p1 = Point(x + hs, y - hs)
+  p2 = Point(x - hs, y - hs)
+  p3 = Point(x - hs, y + hs)
+  p4 = Point(x + hs, y + hs)
+
+  return Polygon( #rotation
+    rotate(head, center, angle),
+    rotate(p1, center, angle),
+    rotate(p2, center, angle),
+    rotate(p3, center, angle),
+    rotate(p4, center, angle)
+  )
+
+angles = [
+  0,
+  math.pi / 6,
+  math.pi / 4,
+  math.pi / 3,
+  math.pi / 2,
+  math.pi * 2/3,
+  math.pi * 3/4,
+  math.pi * 5/6,
+  math.pi,
+  math.pi * 7/6,
+  math.pi * 5/4,
+  math.pi * 4/3,
+  math.pi * 3/2,
+  math.pi * 5/3,
+  math.pi * 7/4,
+  math.pi * 11/6
+]
+center = Point(50, 50)
+a = 0
+
+while(True): 
+  ant = getPolygon(center, angles[a])
+  ant.setFill("red")
+  ant.draw(win)
+  a += 1
+  a = a % len(angles)
+  win.getKey()
+  ant.undraw()
+
