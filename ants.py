@@ -1,67 +1,71 @@
 #!/usr/bin/env python3
 
+from tkinter.constants import TRUE
+from graphics import update
+from graphicsLayer import maxGridSize, win, AntGraphic, math
 import random
 import os
 
-maxGridSize = 10
-
-class Location:
-  x = 0
-  y = 0
-
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
-
-  def __str__(self):
-    return "({}, {})".format(self.x, self.y)
-
-  @classmethod
-  def random(self):
-    return Location(random.randint(0,maxGridSize-1), random.randint(0,maxGridSize-1))
-
 # Used to assign id numbers to new ants
 antCount = 0
+antSpeed = 1
 
 class Ant:
   id = 0
-  location = Location(0,0)
+  antGraphic = None
 
-  def __init__(self, location):
-    self.location = location
+  def __init__(self, x, y, angle):
     global antCount
     self.id = antCount
     antCount += 1
+    self.antGraphic = AntGraphic(x, y, angle)
   
   def __str__(self) -> str:
-    return "Ant #{}: {}".format(self.id, self.location)
+    return "Ant #{}: {} ".format(self.id, self.antGraphic)
+
+  def x (self):
+    return self.antGraphic.x()
+
+  def y (self):
+    return self.antGraphic.y()
+
+  def angle (self):
+    return self.antGraphic.getAngle()
 
   @classmethod
   def random(self):
-    return Ant(Location.random())
+    return Ant(random.randint(0, maxGridSize-1), random.randint(0, maxGridSize-1), random.uniform(0, math.pi * 2))
 
-  def move(self):
-    dir = random.randint(1,5)
-    if (dir == 1 and self.location.x < maxGridSize-1):
-      self.location.x += 1
-      return "right"
-    elif (dir == 2 and self.location.x > 0):
-      self.location.x -= 1
-      return "left"
-    elif (dir == 3 and self.location.y < maxGridSize-1):
-      self.location.y += 1
-      return "down"
-    elif (dir == 4 and self.location.y > 0):
-      self.location.y -= 1
-      return "up"
+  def look(self, x, y):
+    dy = y - self.y()
+    dx = x - self.x()
+    tan = math.atan2(dy, dx)
+    self.antGraphic.move(self.x(), self.y(), tan)
+    
+  def moveForward(self):
+    dx = antSpeed * math.cos(self.angle())
+    dy = antSpeed * math.sin(self.angle())
+    x = self.x() + dx
+    y = self.y() + dy
+    if (0 < x < maxGridSize - 2 and 0 < y < maxGridSize - 2):
+      self.antGraphic.move(x, y, self.angle())
+    
+  def wander(self):
+    rand = random.random()
+    if (rand < 90/100):
+      self.moveForward()
+    if (rand < 95/100):
+      return "stayed still"
     else:
-      return "stayed"
+      self.antGraphic.move(self.x(), self.y(), random.uniform(0, math.pi * 2))
 
 # Array of all ants that exist
 antsArray = []
 
 def newAnt():
-  antsArray.append(Ant.random())
+  ant = Ant.random()
+  antsArray.append(ant)
+  return ant
 
 def newAnts(number):
   for x in range(number):
@@ -74,49 +78,28 @@ def printAllAnts():
   for ant in antsArray:
     print(ant)
 
-def moveAndPrintAnt(id):
-  dir = antsArray[id].move()
-  if (dir == "stayed"):
-    print("Ant #{} stayed at \t{}".format(id, antsArray[id].location))
-  else:
-    print("Ant #{} moved {} to \t{}".format(id, dir, antsArray[id].location))
-
 def moveAllAnts():
   for ant in antsArray:
-    ant.move()
+    ant.wander()
 
-def printWorld():
-  #sorted = antsArray.sort(key=sortX)
-  for y in range(0, maxGridSize):
-    row = ""
-    for x in range(0, maxGridSize):
-      found = " . "
-      for ant in antsArray:
-        if (ant.location.x == x and ant.location.y == y):
-          found = " {} ".format(ant.id)
-          break
-      row += found
-    print(row)
+# Testing mode where a single ant is created and moves forward in whatever direction it's facing.
+# The user can click anywhere on the screen and the ant will rotate to face that location.
+def testAntRotationAndMovement():
+  ant = Ant(maxGridSize/2, maxGridSize/2, 0)
+  while (TRUE):
+    update(10)
+    point = win.checkMouse()
+    if (point != None):
+      win.plotPixel(point.x, point.y)
+      ant.look(point.x, point.y)
+    ant.moveForward()
 
-
-
-# Main code
-userInput = ""
-os.system('clear')
-newAnts(5)
-printWorld()
-print()
-printAllAnts()
-userInput = input("Input: ")
-
-while (userInput != "x" and userInput != "X"):
-  if (userInput == "c" or userInput == "C"):
-    printAntCount()
-    userInput = input("Input: ")
-  else:
+def main():
+  newAnts(100)
+  while(win.checkKey() != 'x'):
     moveAllAnts()
-    os.system('clear')
-    printWorld()
-    print()
-    printAllAnts()
-    userInput = input("Input: ")
+    update(60)
+  win.close()
+
+main()
+#testAntRotationAndMovement()
