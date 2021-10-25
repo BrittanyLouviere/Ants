@@ -1,5 +1,6 @@
 from graphics import *
 import math
+import random
 
 # window setup
 maxGridSize = 500
@@ -10,19 +11,24 @@ class AntGraphic:
   center = Point(0, 0)
   angle = 0.0
   polygon = Polygon()
+  color = color_rgb(0, 0, 0)
 
   def __init__(self, x: int, y: int, angle: float) -> None:
     self.center = Point(x, y)
     self.angle = angle
-    self.polygon = getPolygon(self.center, self.angle)
+    rand_color = random.choices(range(256), k=3)
+    self.color = color_rgb(rand_color[0], rand_color[1], rand_color[2])
+    self.polygon = getPolygon(self.center, self.angle, self.color)
     self.polygon.draw(win)
 
   def __str__(self) -> str:
-    return "[center: {}, angle: {}, polygon: {}]".format(self.center, self.angle, self.polygon)
+    return "[center: {}, angle: {}]".format(self.center, self.angle)
   
   def move(self, x, y, angle):
+    self.center = Point(x, y)
+    self.angle = angle
     self.polygon.undraw()
-    self.polygon = getPolygon(Point(x, y), angle)
+    self.polygon = getPolygon(Point(x, y), angle, self.color)
     self.polygon.draw(win)
   
   def x (self):
@@ -37,13 +43,13 @@ class AntGraphic:
 def rotate (point: Point, center: Point, angle: float) -> Point:
   s = math.sin(angle)
   c = math.cos(angle)
-  px = point.x - center.x
-  py = point.y - center.y
-  nx = px * c - py * s
-  ny = px * s + py * c
+  dx = point.x - center.x
+  dy = point.y - center.y
+  nx = dx * c - dy * s
+  ny = dx * s + dy * c
   return Point(nx + center.x, ny + center.y)
 
-def getPolygon (center: Point, angle: float) -> Polygon:
+def getPolygon (center: Point, angle: float, color) -> Polygon:
   size = 6
   hs = 6/2
   x = center.x
@@ -62,35 +68,5 @@ def getPolygon (center: Point, angle: float) -> Polygon:
     rotate(p3, center, angle),
     rotate(p4, center, angle)
   )
-  ant.setFill("red")
+  ant.setFill(color)
   return ant
-
-def testRotation():
-  angles = [
-    0,
-    math.pi / 6,
-    math.pi / 4,
-    math.pi / 3,
-    math.pi / 2,
-    math.pi * 2/3,
-    math.pi * 3/4,
-    math.pi * 5/6,
-    math.pi,
-    math.pi * 7/6,
-    math.pi * 5/4,
-    math.pi * 4/3,
-    math.pi * 3/2,
-    math.pi * 5/3,
-    math.pi * 7/4,
-    math.pi * 11/6
-  ]
-  center = Point(50, 50)
-  a = 0
-
-  while(True): 
-    ant = getPolygon(center, angles[a])
-    ant.draw(win)
-    a += 1
-    a = a % len(angles)
-    win.getKey()
-    ant.undraw()

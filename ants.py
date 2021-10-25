@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+from tkinter.constants import TRUE
+from graphics import update
 from graphicsLayer import maxGridSize, win, AntGraphic, math
 import random
 import os
 
 # Used to assign id numbers to new ants
 antCount = 0
+antSpeed = 1
 
 class Ant:
   id = 0
@@ -33,22 +36,28 @@ class Ant:
   def random(self):
     return Ant(random.randint(0, maxGridSize-1), random.randint(0, maxGridSize-1), random.uniform(0, math.pi * 2))
 
-  def move(self):
-    dir = random.randint(1,5)
-    if (dir == 1 and self.x() < maxGridSize-1):
-      self.antGraphic.move(self.x() + 1, self.y(), self.angle())
-      return "right"
-    elif (dir == 2 and self.x() > 0):
-      self.antGraphic.move(self.x() - 1, self.y(), self.angle())
-      return "left"
-    elif (dir == 3 and self.y() < maxGridSize-1):
-      self.antGraphic.move(self.x(), self.y() + 1, self.angle())
-      return "down"
-    elif (dir == 4 and self.y() > 0):
-      self.antGraphic.move(self.x(), self.y() - 1, self.angle())
-      return "up"
+  def look(self, x, y):
+    dy = y - self.y()
+    dx = x - self.x()
+    tan = math.atan2(dy, dx)
+    self.antGraphic.move(self.x(), self.y(), tan)
+    
+  def moveForward(self):
+    dx = antSpeed * math.cos(self.angle())
+    dy = antSpeed * math.sin(self.angle())
+    x = self.x() + dx
+    y = self.y() + dy
+    if (0 < x < maxGridSize - 2 and 0 < y < maxGridSize - 2):
+      self.antGraphic.move(x, y, self.angle())
+    
+  def wander(self):
+    rand = random.random()
+    if (rand < 90/100):
+      self.moveForward()
+    if (rand < 95/100):
+      return "stayed still"
     else:
-      return "stayed"
+      self.antGraphic.move(self.x(), self.y(), random.uniform(0, math.pi * 2))
 
 # Array of all ants that exist
 antsArray = []
@@ -69,23 +78,28 @@ def printAllAnts():
   for ant in antsArray:
     print(ant)
 
-def moveAndPrintAnt(id):
-  dir = antsArray[id].move()
-  if (dir == "stayed"):
-    print("Ant #{} stayed at \t{}".format(id, antsArray[id].location))
-  else:
-    print("Ant #{} moved {} to \t{}".format(id, dir, antsArray[id].location))
-
 def moveAllAnts():
   for ant in antsArray:
-    ant.move()
+    ant.wander()
+
+# Testing mode where a single ant is created and moves forward in whatever direction it's facing.
+# The user can click anywhere on the screen and the ant will rotate to face that location.
+def testAntRotationAndMovement():
+  ant = Ant(maxGridSize/2, maxGridSize/2, 0)
+  while (TRUE):
+    update(10)
+    point = win.checkMouse()
+    if (point != None):
+      win.plotPixel(point.x, point.y)
+      ant.look(point.x, point.y)
+    ant.moveForward()
 
 def main():
-  newAnts(10)
+  newAnts(100)
   while(win.checkKey() != 'x'):
     moveAllAnts()
-    #update(30)
+    update(60)
   win.close()
 
 main()
-#testRotation()
+#testAntRotationAndMovement()
